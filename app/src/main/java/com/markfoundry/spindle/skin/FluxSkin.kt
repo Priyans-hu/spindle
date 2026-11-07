@@ -1,201 +1,262 @@
 package com.markfoundry.spindle.skin
 
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.min
 import com.markfoundry.spindle.player.NowPlaying
 import com.markfoundry.spindle.player.PlayerControls
 import com.markfoundry.spindle.ui.NextIcon
 import com.markfoundry.spindle.ui.PauseIcon
 import com.markfoundry.spindle.ui.PlayIcon
 import com.markfoundry.spindle.ui.PrevIcon
-
-private val Void = Color(0xFF06070D)
-private val VoidTop = Color(0xFF10132A)
-private val Panel = Color(0xFF0C1020)
-private val Cyan = Color(0xFF3FE6F2)
-private val Violet = Color(0xFF8B6BFF)
-private val Magenta = Color(0xFFFF4D8D)
-private val FluxText = Color(0xFFEAF2FF)
-private val FluxDim = Color(0xFF8794B3)
+import com.markfoundry.spindle.ui.SeekBar
+import com.markfoundry.spindle.ui.TransportButton
+import com.markfoundry.spindle.ui.WordmarkRow
+import com.markfoundry.spindle.ui.PlayerTray
+import com.markfoundry.spindle.ui.motion.motionSpec
+import com.markfoundry.spindle.ui.motion.rememberMotionEnabled
+import com.markfoundry.spindle.ui.motion.rememberSpin
+import com.markfoundry.spindle.ui.rememberHaptics
+import com.markfoundry.spindle.ui.theme.Flux
+import com.markfoundry.spindle.ui.theme.FluxPalette
+import com.markfoundry.spindle.ui.theme.FluxType
+import com.markfoundry.spindle.ui.theme.MotionTokens
+import com.markfoundry.spindle.ui.theme.SkinColors
+import com.markfoundry.spindle.ui.theme.SpindleDimens
 
 object FluxSkin : PlayerSkin {
     override val id = "flux"
     override val displayName = "Flux"
+    override val type = FluxType
+    override val trayRadius = SpindleDimens.FluxTrayRadius
+
+    /** Dark-only by identity (spec s1). */
+    @Composable
+    override fun colors(): SkinColors = Flux
 
     @Composable
-    override fun Render(state: NowPlaying, controls: PlayerControls) {
+    override fun Render(state: NowPlaying?, controls: PlayerControls) {
         FluxScreen(state, controls)
     }
+
+    @Composable
+    override fun IdleHero(modifier: Modifier) {
+        BoxWithConstraints(modifier, contentAlignment = Alignment.Center) {
+            FluxDisc(min(maxWidth, maxHeight), artwork = null, isPlaying = false)
+        }
+    }
 }
 
-@Composable
-private fun FluxScreen(state: NowPlaying, controls: PlayerControls) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Brush.verticalGradient(listOf(VoidTop, Void)))
-            .systemBarsPadding(),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text("SPINDLE", color = Cyan, fontWeight = FontWeight.ExtraBold, fontSize = 16.sp, letterSpacing = 3.sp)
-            Text("NOW PLAYING", color = FluxDim, fontWeight = FontWeight.Bold, fontSize = 10.sp, letterSpacing = 3.sp)
-        }
+private val FluxGround = Brush.verticalGradient(listOf(FluxPalette.GroundTop, FluxPalette.Ground))
 
-        Box(
-            modifier = Modifier.fillMaxWidth().weight(1f).padding(horizontal = 24.dp),
-            contentAlignment = Alignment.Center,
+@Composable
+private fun FluxScreen(state: NowPlaying?, controls: PlayerControls) {
+    BoxWithConstraints(Modifier.fillMaxSize().background(FluxGround)) {
+        val discCap = min(maxWidth - SpindleDimens.Gutter * 2, maxHeight * 0.46f)
+        Column(Modifier.fillMaxSize()) {
+            WordmarkRow(Flux.ink, FluxType.wordmark)
+            BoxWithConstraints(
+                modifier = Modifier.fillMaxWidth().weight(1f).padding(bottom = SpindleDimens.Gutter),
+                contentAlignment = Alignment.Center,
+            ) {
+                FluxDisc(min(discCap, min(maxWidth, maxHeight)), state?.artwork, state?.isPlaying == true)
+            }
+            PlayerTray(state, controls, Flux, FluxSkin.trayRadius, FluxType) { s, c -> GlassTrayRows(s, c) }
+        }
+    }
+}
+
+/** Art disc inside the dichroic foil ring; colour appears only where light catches the foil. */
+@Composable
+private fun FluxDisc(size: Dp, artwork: ImageBitmap?, isPlaying: Boolean) {
+    val motion = rememberMotionEnabled()
+    val spin = rememberSpin(isPlaying, MotionTokens.FLUX_DEG_PER_SEC, motion)
+    // Pause breath: art settles to 0.94 on the layout spring, play returns it on the press spring.
+    val breath by animateFloatAsState(
+        targetValue = if (isPlaying) 1f else 0.94f,
+        animationSpec = motionSpec(motion, if (isPlaying) MotionTokens.press() else MotionTokens.layout()),
+        label = "flux-breath",
+    )
+    Box(Modifier.size(size), contentAlignment = Alignment.Center) {
+        // Ring and glow turn together: the glow takes each foil arc's colour, none between arcs.
+        Canvas(
+            Modifier.fillMaxSize().graphicsLayer {
+                rotationZ = spin.angle
+                compositingStrategy = CompositingStrategy.Offscreen
+            },
         ) {
-            Box(modifier = Modifier.fillMaxWidth(0.82f).aspectRatio(1f), contentAlignment = Alignment.Center) {
-                HoloRing(isPlaying = state.isPlaying, modifier = Modifier.fillMaxSize())
-                Box(
-                    modifier = Modifier.fillMaxSize(0.6f).clip(CircleShape).background(Panel),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    val art = state.artwork
-                    if (art != null) {
-                        Image(
-                            bitmap = art,
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop,
-                        )
-                    } else {
-                        Box(Modifier.fillMaxSize().background(Brush.linearGradient(listOf(Violet, Cyan))))
-                    }
+            val glow = GLOW.toPx()
+            val outer = this.size.minDimension / 2f - glow
+            val stroke = outer * 2f * RING
+            val r = outer - stroke / 2f
+            drawCircle(FoilGlow, outer, style = Stroke(glow * 2f))
+            // Radial falloff over 24dp each side of the ring's outer edge; DstIn masks only the glow drawn so far.
+            drawCircle(
+                brush = Brush.radialGradient(
+                    0f to Color.Transparent,
+                    (outer - glow) / (outer + glow) to Color.Transparent,
+                    outer / (outer + glow) to Color.Black,
+                    1f to Color.Transparent,
+                    center = center,
+                    radius = outer + glow,
+                ),
+                radius = outer + glow,
+                blendMode = BlendMode.DstIn,
+            )
+            drawCircle(FoilRing, r, style = Stroke(stroke))
+            drawCircle(Flux.trayEdge, r + stroke / 2f, style = Stroke(1.dp.toPx()))
+            drawCircle(Flux.trayEdge, r - stroke / 2f, style = Stroke(1.dp.toPx()))
+        }
+        // Art fills the ring to a 4dp gap; no border, so light shows only on the foil.
+        Box(
+            modifier = Modifier
+                .size((size - GLOW * 2) * (1f - RING * 2) - ART_GAP * 2)
+                .graphicsLayer {
+                    scaleX = breath
+                    scaleY = breath
                 }
-            }
-        }
-
-        FluxPanel(state = state, controls = controls)
-    }
-}
-
-@Composable
-private fun HoloRing(isPlaying: Boolean, modifier: Modifier = Modifier) {
-    val rotation = remember { Animatable(0f) }
-    LaunchedEffect(isPlaying) {
-        if (isPlaying) {
-            while (true) {
-                rotation.animateTo(
-                    targetValue = rotation.value + 360f,
-                    animationSpec = tween(durationMillis = 6000, easing = LinearEasing),
-                )
-            }
-        }
-    }
-    Canvas(modifier = modifier.rotate(rotation.value)) {
-        val stroke = size.minDimension * 0.07f
-        drawCircle(
-            brush = Brush.sweepGradient(listOf(Cyan, Violet, Magenta, Cyan), center = center),
-            radius = size.minDimension / 2f - stroke / 2f,
-            center = center,
-            style = Stroke(width = stroke),
-        )
-    }
-}
-
-@Composable
-private fun FluxPanel(state: NowPlaying, controls: PlayerControls) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
-            .background(Brush.verticalGradient(listOf(Panel.copy(alpha = 0.92f), Void)))
-            .padding(horizontal = 24.dp, vertical = 22.dp),
-    ) {
-        Text(state.title, color = FluxText, fontWeight = FontWeight.Bold, fontSize = 20.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        val sub = listOfNotNull(state.artist, state.album).joinToString("  ·  ")
-        Text(sub, color = FluxDim, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 3.dp))
-
-        Box(
-            modifier = Modifier.fillMaxWidth().padding(top = 18.dp).height(4.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.12f)),
+                .clip(CircleShape)
+                .background(FluxPalette.GroundTop),
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(state.progress.coerceIn(0f, 1f))
-                    .fillMaxHeight()
-                    .clip(CircleShape)
-                    .background(Brush.horizontalGradient(listOf(Cyan, Violet))),
+            if (artwork != null) {
+                Image(artwork, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+            }
+        }
+    }
+}
+
+private val GLOW = 24.dp
+private val ART_GAP = 4.dp
+
+/** Ring stroke as a fraction of the ring's outer diameter. */
+private const val RING = 0.075f
+
+private val FoilBase = FluxPalette.SeekTrack.copy(alpha = 0.30f)
+
+private fun glowOf(c: Color) = c.copy(alpha = 0.15f)
+
+private val GlowClear = FluxPalette.Accent.copy(alpha = 0f)
+
+/** The foil arcs at 15%, clear between them. Same stops as [FoilRing]. */
+private val FoilGlow = Brush.sweepGradient(
+    0f to GlowClear,
+    0.05f to GlowClear,
+    0.10f to glowOf(FluxPalette.Accent),
+    0.15f to glowOf(FluxPalette.Violet),
+    0.20f to glowOf(FluxPalette.Magenta),
+    0.27f to GlowClear,
+    0.55f to GlowClear,
+    0.60f to glowOf(FluxPalette.Accent),
+    0.64f to glowOf(FluxPalette.Violet),
+    0.68f to GlowClear,
+    1f to GlowClear,
+)
+
+private val FoilRing = Brush.sweepGradient(
+    0f to FoilBase,
+    0.05f to FoilBase,
+    0.10f to FluxPalette.Accent,
+    0.15f to FluxPalette.Violet,
+    0.20f to FluxPalette.Magenta,
+    0.27f to FoilBase,
+    0.55f to FoilBase,
+    0.60f to FluxPalette.Accent,
+    0.64f to FluxPalette.Violet,
+    0.68f to FoilBase,
+    1f to FoilBase,
+)
+
+private val FoilButton = Brush.sweepGradient(
+    listOf(FluxPalette.Accent, FluxPalette.Violet, FluxPalette.Magenta, FluxPalette.Accent),
+)
+
+@Composable
+private fun GlassTrayRows(state: NowPlaying, controls: PlayerControls) {
+    val haptics = rememberHaptics()
+    Column(Modifier.fillMaxWidth()) {
+        Text(state.title, color = Flux.text, style = FluxType.title, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        if (state.artist.isNotBlank()) {
+            Text(
+                state.artist,
+                color = Flux.text2,
+                style = FluxType.artist,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(top = 4.dp),
             )
         }
-
-        Spacer(Modifier.height(18.dp))
-
+        if (!state.album.isNullOrBlank()) {
+            Text(state.album, color = Flux.text2, style = FluxType.meta, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+        SeekBar(
+            positionMs = state.positionMs,
+            durationMs = state.durationMs,
+            canSeek = state.canSeek,
+            onSeek = controls::seekTo,
+            track = Flux.seekTrack,
+            fill = Flux.accent,
+            thumb = Flux.seekThumb,
+            timeColor = Flux.text2,
+            timeStyle = FluxType.time,
+            modifier = Modifier.padding(top = 4.dp),
+        )
+        Spacer(Modifier.height(SpindleDimens.TrayPadding / 2))
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            FluxButton(onClick = controls::previous, diameter = 50.dp, glow = false) { PrevIcon(Cyan) }
-            Spacer(Modifier.width(18.dp))
-            FluxButton(onClick = controls::playPause, diameter = 66.dp, glow = true) {
-                if (state.isPlaying) PauseIcon(Void) else PlayIcon(Void)
+            TransportButton("Previous track", { haptics.skipTrack(); controls.previous() }, SpindleDimens.PrevNext, ring = Flux.seekTrack) {
+                PrevIcon(Flux.text, 26.dp)
             }
-            Spacer(Modifier.width(18.dp))
-            FluxButton(onClick = controls::next, diameter = 50.dp, glow = false) { NextIcon(Cyan) }
+            Spacer(Modifier.width(SpindleDimens.TransportGap))
+            TransportButton(
+                label = if (state.isPlaying) "Pause" else "Play",
+                onClick = {
+                    if (state.isPlaying) haptics.pause() else haptics.touchdown()
+                    controls.playPause()
+                },
+                diameter = SpindleDimens.Play,
+                fill = FoilButton,
+            ) {
+                if (state.isPlaying) PauseIcon(Flux.playIcon, 30.dp) else PlayIcon(Flux.playIcon, 30.dp)
+            }
+            Spacer(Modifier.width(SpindleDimens.TransportGap))
+            TransportButton("Next track", { haptics.skipTrack(); controls.next() }, SpindleDimens.PrevNext, ring = Flux.seekTrack) {
+                NextIcon(Flux.text, 26.dp)
+            }
         }
-    }
-}
-
-@Composable
-private fun FluxButton(
-    onClick: () -> Unit,
-    diameter: Dp,
-    glow: Boolean,
-    content: @Composable () -> Unit,
-) {
-    val fill = if (glow) {
-        Brush.linearGradient(listOf(Cyan, Violet))
-    } else {
-        Brush.linearGradient(listOf(Color.White.copy(alpha = 0.10f), Color.White.copy(alpha = 0.04f)))
-    }
-    Box(
-        modifier = Modifier.size(diameter).clip(CircleShape).background(fill).clickable(onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        content()
     }
 }

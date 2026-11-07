@@ -1,5 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Spindle</string>
-    <string name="widget_description">Now playing — control your music from the home screen.</string>
+    <string name="widget_description">See and control what is playing in any app, in your Spindle look.</string>
+    <string name="onboarding_headline">Every app, one turntable</string>
+    <string name="onboarding_body">Spindle reads the title, artist, art and play controls from the app you listen in. It never hears audio, needs no account, and ignores your other notifications.</string>
+    <string name="onboarding_cta">Allow notification access</string>
+    <string name="onboarding_help">Can\'t turn it on?</string>
+    <string name="onboarding_help_hint">Menu, then Allow restricted settings</string>
+    <string name="idle_message">Play something in any app.</string>
+    <string name="looks_button">Change look</string>
+    <string name="looks_label">Looks</string>
+    <string name="looks_title">Choose a look</string>
+    <string name="widget_idle_title">Nothing playing</string>
+    <string name="widget_unknown_title">Unknown</string>
+    <string name="widget_open">Open Spindle</string>
+    <string name="widget_play">Play</string>
+    <string name="widget_pause">Pause</string>
+    <string name="widget_prev">Previous track</string>
+    <string name="widget_next">Next track</string>
 </resources>

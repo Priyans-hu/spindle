@@ -8,10 +8,8 @@ import android.media.session.PlaybackState
 
 class SpindleWidgetProvider : AppWidgetProvider() {
 
-    override fun onUpdate(context: Context, manager: AppWidgetManager, appWidgetIds: IntArray) {
-        val views = SpindleWidget.buildViews(context)
-        appWidgetIds.forEach { manager.updateAppWidget(it, views) }
-    }
+    override fun onUpdate(context: Context, manager: AppWidgetManager, appWidgetIds: IntArray) =
+        SpindleWidget.updateAll(context)
 
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)

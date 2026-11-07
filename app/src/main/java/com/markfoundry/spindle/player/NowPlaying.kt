@@ -12,8 +12,10 @@ data class NowPlaying(
     val isPlaying: Boolean = false,
     val positionMs: Long = 0L,
     val durationMs: Long = 0L,
-    /** Album art from the media session; null until Phase 2 wires it (skins draw a placeholder). */
+    /** Album art from the media session; null when the app sends none (skins draw a placeholder). */
     val artwork: ImageBitmap? = null,
+    /** True when the session offers ACTION_SEEK_TO and reports a duration. */
+    val canSeek: Boolean = false,
 ) {
     /** Playback progress in the range 0f..1f. */
     val progress: Float
@@ -44,4 +46,5 @@ val PreviewNowPlaying = NowPlaying(
     isPlaying = true,
     positionMs = 238_000L,
     durationMs = 562_000L,
+    canSeek = true,
 )

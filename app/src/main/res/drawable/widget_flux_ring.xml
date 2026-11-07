@@ -1,0 +1,26 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Accent glow at 35%, then the foil ring. -->
+    <item>
+        <shape android:shape="oval">
+            <gradient
+                android:endColor="#003FE6F2"
+                android:gradientRadius="30dp"
+                android:startColor="@color/widget_flux_glow"
+                android:type="radial" />
+        </shape>
+    </item>
+    <item android:bottom="6dp" android:left="6dp" android:right="6dp" android:top="6dp">
+        <shape
+            android:innerRadiusRatio="2.34"
+            android:shape="ring"
+            android:thicknessRatio="13.7"
+            android:useLevel="false">
+            <gradient
+                android:centerColor="@color/widget_flux_violet"
+                android:endColor="@color/widget_flux_magenta"
+                android:startColor="@color/widget_flux_accent"
+                android:type="sweep"
+                android:useLevel="false" />
+        </shape>
+    </item>
+</layer-list>

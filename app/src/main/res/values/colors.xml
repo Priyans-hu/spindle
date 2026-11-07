@@ -1,4 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="ic_launcher_background">#E8645A</color>
+
+    <!-- Widget, mirrors ui/theme/SpindleTokens.kt. Analog Day here, Night in values-night. -->
+    <color name="widget_analog_ground">#E8645A</color>
+    <color name="widget_analog_tray">#2B356A</color>
+    <color name="widget_analog_tray_edge">#00000000</color>
+    <color name="widget_analog_text">#F2E7D0</color>
+    <color name="widget_analog_text2">#E3D3B2</color>
+    <color name="widget_analog_play_fill">#B8352B</color>
+    <color name="widget_analog_play_icon">#F2E7D0</color>
+    <color name="widget_analog_play_rim">#F2E7D0</color>
+    <color name="widget_analog_disc_rim">#00000000</color>
+    <color name="widget_analog_shadow">#4D151A3A</color>
+    <color name="widget_analog_label">#F2E7D0</color>
+    <color name="widget_vinyl">#17130F</color>
+    <color name="widget_groove">#2C231D</color>
+
+    <!-- Flux is dark-only: no values-night override. -->
+    <color name="widget_flux_ground">#07080F</color>
+    <color name="widget_flux_ground_top">#10132A</color>
+    <color name="widget_flux_tray">#E01A2040</color>
+    <color name="widget_flux_tray_edge">#24FFFFFF</color>
+    <color name="widget_flux_text">#EAF2FF</color>
+    <color name="widget_flux_text2">#A3AECB</color>
+    <color name="widget_flux_accent">#3FE6F2</color>
+    <color name="widget_flux_glow">#593FE6F2</color>
+    <color name="widget_flux_violet">#8B6BFF</color>
+    <color name="widget_flux_magenta">#FF4D8D</color>
+    <color name="widget_flux_play_icon">#07080F</color>
+    <color name="widget_flux_slot">#1A2040</color>
 </resources>

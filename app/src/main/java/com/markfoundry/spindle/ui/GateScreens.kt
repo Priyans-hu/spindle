@@ -1,104 +1,142 @@
 package com.markfoundry.spindle.ui
 
+import android.os.Build
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.min
+import com.markfoundry.spindle.R
+import com.markfoundry.spindle.skin.PlayerSkin
+import com.markfoundry.spindle.ui.motion.motionSpec
+import com.markfoundry.spindle.ui.motion.rememberMotionEnabled
+import com.markfoundry.spindle.ui.theme.MotionTokens
+import com.markfoundry.spindle.ui.theme.SpindleDimens
 
-private val Coral = Color(0xFFE8645A)
-private val Navy = Color(0xFF2B356A)
-private val Cream = Color(0xFFF2E7D0)
-private val Red = Color(0xFFD94B3F)
-
+/** Gates use the active skin's tokens (Analog Day/Night before the first pick). */
 @Composable
-fun OnboardingScreen(onGrantClick: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Coral)
-            .systemBarsPadding()
-            .padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Text("SPINDLE", color = Navy, fontWeight = FontWeight.ExtraBold, fontSize = 22.sp, letterSpacing = 3.sp)
-        Spacer(Modifier.height(20.dp))
-        Text("One tap and you're set", color = Navy, fontWeight = FontWeight.ExtraBold, fontSize = 24.sp, textAlign = TextAlign.Center)
-        Spacer(Modifier.height(12.dp))
-        Text(
-            "Spindle reads your phone's media controls to show and control whatever's playing — Spotify, YouTube Music, anything. No account, no login.",
-            color = Navy.copy(alpha = 0.82f),
-            fontSize = 15.sp,
-            lineHeight = 22.sp,
-            textAlign = TextAlign.Center,
+fun OnboardingScreen(skin: PlayerSkin, onGrantClick: () -> Unit, onHelpClick: () -> Unit) {
+    val colors = skin.colors()
+    val type = skin.type
+    val motion = rememberMotionEnabled()
+    var shown by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { shown = true }
+    val discScale by animateFloatAsState(
+        targetValue = if (shown) 1f else 0.92f,
+        animationSpec = motionSpec(motion, MotionTokens.layout()),
+        label = "onboarding-disc",
+    )
+
+    @Composable
+    fun appear(index: Int): Modifier {
+        val alpha by animateFloatAsState(
+            targetValue = if (shown) 1f else 0f,
+            animationSpec = motionSpec(motion, tween(MotionTokens.SKIN_FADE_IN_MS, delayMillis = 60 * index)),
+            label = "onboarding-text-$index",
         )
-        Spacer(Modifier.height(28.dp))
+        return Modifier.graphicsLayer { this.alpha = alpha }
+    }
+
+    BoxWithConstraints(Modifier.fillMaxSize().background(colors.ground).systemBarsPadding()) {
+        // Large fonts shrink the hero first so the CTA stays above the fold.
+        val fontScale = LocalDensity.current.fontScale
+        val heroHeight = min(maxWidth - SpindleDimens.Gutter * 2, maxHeight * 0.34f / (fontScale * fontScale))
+        // Scrolls only when a large font outgrows the screen.
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(16.dp))
-                .background(Navy)
-                .padding(18.dp),
+                .verticalScroll(rememberScrollState())
+                .heightIn(min = maxHeight),
+            verticalArrangement = Arrangement.SpaceBetween,
         ) {
-            Text("Notification access", color = Cream, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-            Spacer(Modifier.height(4.dp))
-            Text(
-                "The same permission smartwatches use to control media. You grant it once.",
-                color = Cream.copy(alpha = 0.75f),
-                fontSize = 12.sp,
-                lineHeight = 17.sp,
+            WordmarkRow(colors.ink, skin.type.wordmark)
+            skin.IdleHero(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = SpindleDimens.Gutter)
+                    .height(heroHeight)
+                    .graphicsLayer {
+                        scaleX = discScale
+                        scaleY = discScale
+                    },
             )
+            Column(Modifier.padding(start = SpindleDimens.Gutter, end = SpindleDimens.Gutter, top = SpindleDimens.Gutter, bottom = 16.dp)) {
+                Text(stringResource(R.string.onboarding_headline), color = colors.ink, style = type.display, modifier = appear(0))
+                Text(
+                    stringResource(R.string.onboarding_body),
+                    color = colors.ink,
+                    style = type.artist,
+                    modifier = appear(1).padding(top = 12.dp),
+                )
+                Box(
+                    modifier = appear(2)
+                        .padding(top = SpindleDimens.Gutter)
+                        .fillMaxWidth()
+                        .heightIn(min = SpindleDimens.Cta)
+                        .clip(RoundedCornerShape(SpindleDimens.Cta / 2))
+                        .background(colors.ctaFill)
+                        .clickable(role = Role.Button, onClick = onGrantClick),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        stringResource(R.string.onboarding_cta),
+                        color = colors.ctaLabel,
+                        style = type.button,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    )
+                }
+                // Sideloaded APKs on Android 13+ hit restricted settings; App info unlocks them.
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    Column(
+                        modifier = appear(3)
+                            .padding(top = 8.dp)
+                            .fillMaxWidth()
+                            .heightIn(min = 48.dp)
+                            .clip(RoundedCornerShape(SpindleDimens.ChipRadius))
+                            .clickable(role = Role.Button, onClick = onHelpClick)
+                            .padding(vertical = 8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Text(
+                            stringResource(R.string.onboarding_help),
+                            color = colors.ink,
+                            style = type.button.copy(textDecoration = TextDecoration.Underline),
+                        )
+                        Text(stringResource(R.string.onboarding_help_hint), color = colors.ink, style = type.meta)
+                    }
+                }
+            }
         }
-        Spacer(Modifier.height(20.dp))
-        Button(
-            onClick = onGrantClick,
-            colors = ButtonDefaults.buttonColors(containerColor = Red, contentColor = Cream),
-            shape = RoundedCornerShape(14.dp),
-            modifier = Modifier.fillMaxWidth().height(52.dp),
-        ) {
-            Text("Grant access", fontWeight = FontWeight.Bold, fontSize = 15.sp)
-        }
-    }
-}
-
-@Composable
-fun NothingPlayingScreen() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Coral)
-            .systemBarsPadding()
-            .padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Text("SPINDLE", color = Navy, fontWeight = FontWeight.ExtraBold, fontSize = 20.sp, letterSpacing = 3.sp)
-        Spacer(Modifier.height(16.dp))
-        Text("Nothing playing", color = Navy, fontWeight = FontWeight.ExtraBold, fontSize = 22.sp)
-        Spacer(Modifier.height(8.dp))
-        Text(
-            "Start a track in Spotify (or any player) and it'll spin up here.",
-            color = Navy.copy(alpha = 0.82f),
-            fontSize = 14.sp,
-            textAlign = TextAlign.Center,
-        )
     }
 }
