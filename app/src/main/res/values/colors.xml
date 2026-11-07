@@ -11,6 +11,7 @@
     <color name="widget_analog_play_fill">#B8352B</color>
     <color name="widget_analog_play_icon">#F2E7D0</color>
     <color name="widget_analog_play_rim">#F2E7D0</color>
+    <color name="widget_analog_disc_rim">#00000000</color>
     <color name="widget_analog_shadow">#4D151A3A</color>
     <color name="widget_analog_label">#F2E7D0</color>
     <color name="widget_vinyl">#17130F</color>
