@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 4x1 Flux: art in a foil ring on void, glass tray. Dark-only. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/background"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_flux_bg"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:padding="8dp">
+
+    <FrameLayout
+        android:id="@+id/widget_open"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_marginStart="2dp"
+        android:layout_marginEnd="8dp"
+        android:contentDescription="@string/widget_open">
+
+        <ImageView
+            android:id="@+id/widget_ring_static"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_gravity="center"
+            android:importantForAccessibility="no"
+            android:src="@drawable/widget_flux_ring" />
+
+        <ProgressBar
+            android:id="@+id/widget_ring_spin"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_gravity="center"
+            android:importantForAccessibility="no"
+            android:indeterminate="true"
+            android:indeterminateDrawable="@drawable/widget_flux_ring_spin"
+            android:indeterminateDuration="6000"
+            android:visibility="gone" />
+
+        <ImageView
+            android:id="@+id/widget_art"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:layout_gravity="center"
+            android:importantForAccessibility="no"
+            android:scaleType="centerCrop"
+            android:src="@drawable/widget_flux_slot" />
+    </FrameLayout>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:background="@drawable/widget_flux_tray"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingEnd="4dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/widget_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:fontFamily="@font/sora"
+                android:maxLines="1"
+                android:text="@string/widget_idle_title"
+                android:textColor="@color/widget_flux_text"
+                android:textFontWeight="600"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/widget_artist"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:fontFamily="@font/sora"
+                android:maxLines="1"
+                android:text="@string/idle_message"
+                android:textColor="@color/widget_flux_text2"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/widget_prev"
+            android:layout_width="44dp"
+            android:layout_height="48dp"
+            android:background="@drawable/widget_button_bg"
+            android:contentDescription="@string/widget_prev"
+            android:padding="12dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_widget_prev"
+            android:tint="@color/widget_flux_text" />
+
+        <ImageButton
+            android:id="@+id/widget_playpause"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@drawable/widget_flux_play_bg"
+            android:contentDescription="@string/widget_play"
+            android:padding="13dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_widget_play"
+            android:tint="@color/widget_flux_play_icon" />
+
+        <ImageButton
+            android:id="@+id/widget_next"
+            android:layout_width="44dp"
+            android:layout_height="48dp"
+            android:background="@drawable/widget_button_bg"
+            android:contentDescription="@string/widget_next"
+            android:padding="12dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_widget_next"
+            android:tint="@color/widget_flux_text" />
+    </LinearLayout>
+</LinearLayout>

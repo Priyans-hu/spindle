@@ -1,0 +1,13 @@
+<ripple xmlns:android="http://schemas.android.com/apk/res/android" android:color="#33FFFFFF">
+    <item>
+        <shape android:shape="oval">
+            <!-- Linear foil: a sweep leaves a hard seam at this size. -->
+            <gradient
+                android:angle="315"
+                android:centerColor="@color/widget_flux_violet"
+                android:endColor="@color/widget_flux_magenta"
+                android:startColor="@color/widget_flux_accent"
+                android:type="linear" />
+        </shape>
+    </item>
+</ripple>

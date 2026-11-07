@@ -1,0 +1,8 @@
+<ripple xmlns:android="http://schemas.android.com/apk/res/android" android:color="#33FFFFFF">
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="@color/widget_analog_play_fill" />
+            <stroke android:width="2dp" android:color="@color/widget_analog_play_rim" />
+        </shape>
+    </item>
+</ripple>

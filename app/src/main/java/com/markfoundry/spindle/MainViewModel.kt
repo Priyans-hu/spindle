@@ -8,6 +8,7 @@ import com.markfoundry.spindle.media.MediaSessionRepository
 import com.markfoundry.spindle.media.NotificationAccess
 import com.markfoundry.spindle.player.PlayerControls
 import com.markfoundry.spindle.skin.defaultSkin
+import com.markfoundry.spindle.widget.SpindleWidget
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
@@ -35,7 +36,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     fun isAccessGranted(): Boolean = NotificationAccess.isGranted(getApplication())
 
     fun selectSkin(id: String) {
-        viewModelScope.launch { settings.setSkinId(id) }
+        viewModelScope.launch {
+            settings.setSkinId(id)
+            SpindleWidget.updateAll(getApplication(), id)
+        }
     }
 
     /** Bind to the media session and start ticking progress. Safe to call repeatedly. */

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Analog Night widget roles; Flux is dark-only and never overridden. -->
+    <color name="widget_analog_ground">#10132A</color>
+    <color name="widget_analog_tray">#1C2142</color>
+    <color name="widget_analog_tray_edge">#1AF2E7D0</color>
+    <color name="widget_analog_text">#F2E7D0</color>
+    <color name="widget_analog_text2">#C9BFA6</color>
+    <color name="widget_analog_play_fill">#FF7A6E</color>
+    <color name="widget_analog_play_icon">#141836</color>
+    <color name="widget_analog_play_rim">#00000000</color>
+    <color name="widget_analog_shadow">#00000000</color>
+</resources>

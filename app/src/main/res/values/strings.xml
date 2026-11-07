@@ -10,4 +10,11 @@
     <string name="idle_message">Play something in any app.</string>
     <string name="looks_button">Change look</string>
     <string name="looks_title">Choose a look</string>
+    <string name="widget_idle_title">Nothing playing</string>
+    <string name="widget_unknown_title">Unknown</string>
+    <string name="widget_open">Open Spindle</string>
+    <string name="widget_play">Play</string>
+    <string name="widget_pause">Pause</string>
+    <string name="widget_prev">Previous track</string>
+    <string name="widget_next">Next track</string>
 </resources>
