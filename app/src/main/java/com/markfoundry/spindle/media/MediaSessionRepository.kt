@@ -7,15 +7,18 @@ import android.media.session.MediaController
 import android.media.session.MediaSessionManager
 import android.media.session.PlaybackState
 import android.os.SystemClock
+import android.util.Log
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import com.markfoundry.spindle.player.NowPlaying
 import com.markfoundry.spindle.player.PlayerControls
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlin.math.abs
 
 /**
- * Reads and controls the device's active media session (Spotify, YouTube Music, …)
+ * Reads and controls the device's active media session (Spotify, YouTube Music, ...)
  * via [MediaSessionManager]. Requires the user to have enabled Notification access,
  * which is what authorizes [MediaSessionManager.getActiveSessions].
  */
@@ -32,8 +35,20 @@ class MediaSessionRepository(context: Context) : PlayerControls {
 
     private var controller: MediaController? = null
 
+    // Art is decoded once per metadata change; ticks reuse the same ImageBitmap instance.
+    private var artwork: ImageBitmap? = null
+    private var artDirty = true
+
+    // Optimistic seek: report the target until the session catches up (within 2s) or 3s pass.
+    private var heldTargetMs: Long? = null
+    private var heldAt = 0L
+
     private val controllerCallback = object : MediaController.Callback() {
-        override fun onMetadataChanged(metadata: MediaMetadata?) = update()
+        override fun onMetadataChanged(metadata: MediaMetadata?) {
+            artDirty = true
+            heldTargetMs = null
+            update()
+        }
         override fun onPlaybackStateChanged(state: PlaybackState?) = update()
         override fun onSessionDestroyed() = refreshSessions()
     }
@@ -70,6 +85,8 @@ class MediaSessionRepository(context: Context) : PlayerControls {
             controller?.unregisterCallback(controllerCallback)
             controller = next
             controller?.registerCallback(controllerCallback)
+            artDirty = true
+            heldTargetMs = null
         }
         update()
     }
@@ -83,25 +100,43 @@ class MediaSessionRepository(context: Context) : PlayerControls {
         }
         val ps = c.playbackState
         val playing = ps?.state == PlaybackState.STATE_PLAYING
-        val position = when {
+        val now = SystemClock.elapsedRealtime()
+        val reported = when {
             ps == null -> 0L
-            playing -> ps.position +
-                ((SystemClock.elapsedRealtime() - ps.lastPositionUpdateTime) * ps.playbackSpeed).toLong()
+            playing -> ps.position + ((now - ps.lastPositionUpdateTime) * ps.playbackSpeed).toLong()
             else -> ps.position
         }
-        val art = md.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART)
-            ?: md.getBitmap(MediaMetadata.METADATA_KEY_ART)
-            ?: md.getBitmap(MediaMetadata.METADATA_KEY_DISPLAY_ICON)
+        val duration = md.getLong(MediaMetadata.METADATA_KEY_DURATION).coerceAtLeast(0L)
+        if (artDirty) {
+            artDirty = false
+            artwork = (
+                md.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART)
+                    ?: md.getBitmap(MediaMetadata.METADATA_KEY_ART)
+                    ?: md.getBitmap(MediaMetadata.METADATA_KEY_DISPLAY_ICON)
+                )?.asImageBitmap()
+        }
         _state.value = NowPlaying(
             title = md.getString(MediaMetadata.METADATA_KEY_TITLE)?.takeIf { it.isNotBlank() } ?: "Unknown",
             artist = md.getString(MediaMetadata.METADATA_KEY_ARTIST)
                 ?: md.getString(MediaMetadata.METADATA_KEY_ALBUM_ARTIST) ?: "",
             album = md.getString(MediaMetadata.METADATA_KEY_ALBUM),
             isPlaying = playing,
-            positionMs = position.coerceAtLeast(0L),
-            durationMs = md.getLong(MediaMetadata.METADATA_KEY_DURATION).coerceAtLeast(0L),
-            artwork = art?.asImageBitmap(),
+            positionMs = heldPosition(reported, playing, now).coerceIn(0L, duration.takeIf { it > 0 } ?: Long.MAX_VALUE),
+            durationMs = duration,
+            artwork = artwork,
+            canSeek = duration > 0L && ps != null && (ps.actions and PlaybackState.ACTION_SEEK_TO) != 0L,
         )
+    }
+
+    private fun heldPosition(reported: Long, playing: Boolean, now: Long): Long {
+        val target = heldTargetMs ?: return reported
+        val since = now - heldAt
+        val expected = target + if (playing) since else 0L
+        if (abs(reported - expected) <= HOLD_TOLERANCE_MS || since > HOLD_TIMEOUT_MS) {
+            heldTargetMs = null
+            return reported
+        }
+        return expected
     }
 
     override fun playPause() {
@@ -124,6 +159,18 @@ class MediaSessionRepository(context: Context) : PlayerControls {
     override fun seekTo(fraction: Float) {
         val c = controller ?: return
         val dur = c.metadata?.getLong(MediaMetadata.METADATA_KEY_DURATION) ?: return
-        if (dur > 0L) c.transportControls.seekTo((dur * fraction).toLong())
+        if (dur <= 0L) return
+        val target = (dur * fraction.coerceIn(0f, 1f)).toLong()
+        Log.i(TAG, "MediaSessionRepository.seekTo: targetMs=$target durationMs=$dur")
+        heldTargetMs = target
+        heldAt = SystemClock.elapsedRealtime()
+        c.transportControls.seekTo(target)
+        update()
+    }
+
+    private companion object {
+        const val TAG = "Spindle"
+        const val HOLD_TOLERANCE_MS = 2_000L
+        const val HOLD_TIMEOUT_MS = 3_000L
     }
 }
