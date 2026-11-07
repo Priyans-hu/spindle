@@ -8,11 +8,16 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
@@ -21,66 +26,132 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.markfoundry.spindle.R
 import com.markfoundry.spindle.skin.AllSkins
+import com.markfoundry.spindle.skin.FluxSkin
+import com.markfoundry.spindle.skin.PlayerSkin
+import com.markfoundry.spindle.ui.theme.AnalogDayPalette
+import com.markfoundry.spindle.ui.theme.DeckPalette
+import com.markfoundry.spindle.ui.theme.FluxPalette
+import com.markfoundry.spindle.ui.theme.SpindleDimens
 
-/** Small overlay button (top corner) that opens the skin picker. */
+/** 48dp Looks button: two overlapping discs, one ring and one solid, in the skin's ink. */
 @Composable
-fun SettingsButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun LooksButton(tint: Color, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val label = stringResource(R.string.looks_button)
     Box(
         modifier = modifier
-            .size(40.dp)
+            .size(SpindleDimens.Looks)
             .clip(CircleShape)
-            .background(Color.Black.copy(alpha = 0.20f))
             .clickable(role = Role.Button, onClick = onClick)
-            .semantics { contentDescription = "Change look" },
+            .semantics { contentDescription = label },
         contentAlignment = Alignment.Center,
     ) {
-        Canvas(Modifier.size(20.dp)) {
-            val cx = size.width / 2f
-            val r = size.width * 0.09f
-            listOf(0.25f, 0.5f, 0.75f).forEach { fy ->
-                drawCircle(Color.White, radius = r, center = Offset(cx, size.height * fy))
-            }
+        Canvas(Modifier.size(22.dp)) {
+            val r = size.width * 0.3f
+            drawCircle(tint, r - 0.9.dp.toPx(), Offset(r, size.height / 2f), style = Stroke(1.8.dp.toPx()))
+            drawCircle(tint, r, Offset(size.width - r, size.height / 2f))
         }
     }
 }
 
+/** Looks sheet on the active skin's tray tokens; 64dp radio rows. Sheet text uses the system font. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SkinPicker(current: String, onSelect: (String) -> Unit, onDismiss: () -> Unit) {
-    ModalBottomSheet(onDismissRequest = onDismiss) {
-        Column(modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, bottom = 36.dp)) {
-            Text("Choose a look", fontWeight = FontWeight.Bold, fontSize = 18.sp, modifier = Modifier.padding(bottom = 12.dp))
+fun SkinPicker(active: PlayerSkin, onSelect: (String) -> Unit, onDismiss: () -> Unit) {
+    val colors = active.colors()
+    val haptics = rememberHaptics()
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        // Opaque: Flux glass would let the player show through the sheet.
+        containerColor = colors.tray.compositeOver(colors.ground),
+        contentColor = colors.text,
+        dragHandle = { BottomSheetDefaults.DragHandle(color = colors.text2) },
+    ) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .padding(start = 16.dp, end = 16.dp, bottom = 24.dp)
+                .selectableGroup(),
+        ) {
+            Text(
+                stringResource(R.string.looks_title),
+                color = colors.text,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 20.sp,
+                modifier = Modifier.padding(start = 8.dp, bottom = 8.dp),
+            )
             AllSkins.forEach { skin ->
-                val selected = skin.id == current
+                val selected = skin.id == active.id
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(if (selected) Color(0x1F3FA0FF) else Color.Transparent)
-                        .clickable { onSelect(skin.id) }
-                        .padding(16.dp),
+                        .heightIn(min = 64.dp)
+                        .clip(RoundedCornerShape(SpindleDimens.ChipRadius))
+                        .background(if (selected) colors.text.copy(alpha = 0.08f) else Color.Transparent)
+                        .selectable(selected = selected, role = Role.RadioButton) {
+                            if (!selected) haptics.skinCommit()
+                            onSelect(skin.id)
+                        }
+                        .padding(horizontal = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Box(modifier = Modifier.size(28.dp).clip(CircleShape).background(skinColor(skin.id)))
-                    Spacer(Modifier.width(14.dp))
-                    Text(skin.displayName, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, modifier = Modifier.weight(1f))
-                    if (selected) Text("✓", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    MiniDisc(skin.id == FluxSkin.id)
+                    Spacer(Modifier.width(16.dp))
+                    Text(
+                        skin.displayName,
+                        color = colors.text,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 17.sp,
+                        modifier = Modifier.weight(1f),
+                    )
+                    if (selected) {
+                        Canvas(Modifier.size(24.dp)) {
+                            val check = Path().apply {
+                                moveTo(size.width * 0.2f, size.height * 0.52f)
+                                lineTo(size.width * 0.42f, size.height * 0.72f)
+                                lineTo(size.width * 0.8f, size.height * 0.3f)
+                            }
+                            drawPath(check, colors.accent, style = Stroke(2.5.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
+                        }
+                    }
                 }
             }
         }
     }
 }
 
-private fun skinColor(id: String): Color = when (id) {
-    "turntable" -> Color(0xFFE8645A)
-    "flux" -> Color(0xFF3FE6F2)
-    else -> Color(0xFF888888)
+/** 40dp swatch: the skin's hero in miniature. */
+@Composable
+private fun MiniDisc(flux: Boolean) {
+    Canvas(Modifier.size(40.dp)) {
+        val r = size.minDimension / 2f
+        if (flux) {
+            drawCircle(FluxPalette.Ground, r)
+            drawCircle(
+                Brush.sweepGradient(listOf(FluxPalette.Accent, FluxPalette.Violet, FluxPalette.Magenta, FluxPalette.Accent), center),
+                r * 0.78f,
+                style = Stroke(r * 0.22f),
+            )
+        } else {
+            drawCircle(AnalogDayPalette.Ground, r)
+            drawCircle(DeckPalette.Vinyl, r * 0.86f)
+            drawCircle(AnalogDayPalette.Text, r * 0.34f)
+        }
+    }
 }
