@@ -9,6 +9,6 @@
     <color name="widget_analog_play_fill">#FF7A6E</color>
     <color name="widget_analog_play_icon">#141836</color>
     <color name="widget_analog_play_rim">#00000000</color>
-    <color name="widget_analog_disc_rim">#1FF2E7D0</color>
+    <color name="widget_analog_disc_rim">#33F2E7D0</color>
     <color name="widget_analog_shadow">#00000000</color>
 </resources>

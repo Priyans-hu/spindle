@@ -150,7 +150,7 @@ private fun Record(artwork: ImageBitmap?, spin: Spin, colors: SkinColors, motion
                 r -= 3.5.dp.toPx()
             }
             drawCircle(colors.text.copy(alpha = 0.6f), outer * 0.9f, style = Stroke(1.dp.toPx()))
-            drawCircle(colors.discRim, outer - 0.75.dp.toPx(), style = Stroke(1.5.dp.toPx()))
+            drawCircle(colors.discRim, outer - 1.dp.toPx(), style = Stroke(2.dp.toPx()))
         }
         // Label art crossfades 300 in / 200 out on a track change.
         AnimatedContent(

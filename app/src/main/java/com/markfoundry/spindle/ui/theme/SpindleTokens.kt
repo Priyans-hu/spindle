@@ -24,6 +24,8 @@ object AnalogDayPalette {
     val CtaLabel = Color(0xFFF2E7D0)   // 9.40 on CtaFill
     val Shadow = Color(0x4D151A3A)     // print shadow, 30%
     val DiscRim = Color.Transparent
+    val Plinth = Color(0xFF2B356A)     // arm plate, decorative
+    val PlinthEdge = Color.Transparent
 }
 
 object AnalogNightPalette {
@@ -42,7 +44,9 @@ object AnalogNightPalette {
     val CtaFill = Color(0xFFFF7A6E)
     val CtaLabel = Color(0xFF141836)   // 6.81 on CtaFill
     val Shadow = Color.Transparent
-    val DiscRim = Color(0x1FF2E7D0)    // cream 12%
+    val DiscRim = Color(0x33F2E7D0)    // cream 20%
+    val Plinth = Color(0xFF343E78)     // arm plate, 1.83 on Ground, decorative
+    val PlinthEdge = Color(0x1FF2E7D0) // cream 12%
 }
 
 object FluxPalette {
@@ -92,18 +96,20 @@ data class SkinColors(
     val ctaLabel: Color,
     val shadow: Color,
     val discRim: Color,
+    val plinth: Color,
+    val plinthEdge: Color,
 )
 
 val AnalogDay = with(AnalogDayPalette) {
-    SkinColors(Ground, Tray, TrayEdge, Text, Text2, Ink, Accent, PlayFill, PlayIcon, PlayRim, SeekTrack, SeekThumb, CtaFill, CtaLabel, Shadow, DiscRim)
+    SkinColors(Ground, Tray, TrayEdge, Text, Text2, Ink, Accent, PlayFill, PlayIcon, PlayRim, SeekTrack, SeekThumb, CtaFill, CtaLabel, Shadow, DiscRim, Plinth, PlinthEdge)
 }
 
 val AnalogNight = with(AnalogNightPalette) {
-    SkinColors(Ground, Tray, TrayEdge, Text, Text2, Ink, Accent, PlayFill, PlayIcon, PlayRim, SeekTrack, SeekThumb, CtaFill, CtaLabel, Shadow, DiscRim)
+    SkinColors(Ground, Tray, TrayEdge, Text, Text2, Ink, Accent, PlayFill, PlayIcon, PlayRim, SeekTrack, SeekThumb, CtaFill, CtaLabel, Shadow, DiscRim, Plinth, PlinthEdge)
 }
 
 val Flux = with(FluxPalette) {
-    SkinColors(Ground, Tray, TrayEdge, Text, Text2, Ink, Accent, Accent, PlayIcon, Color.Transparent, SeekTrack, SeekThumb, CtaFill, CtaLabel, Color.Transparent, Color.Transparent)
+    SkinColors(Ground, Tray, TrayEdge, Text, Text2, Ink, Accent, Accent, PlayIcon, Color.Transparent, SeekTrack, SeekThumb, CtaFill, CtaLabel, Color.Transparent, Color.Transparent, Color.Transparent, Color.Transparent)
 }
 
 object SpindleDimens {

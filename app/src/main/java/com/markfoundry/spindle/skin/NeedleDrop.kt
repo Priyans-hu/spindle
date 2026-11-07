@@ -15,12 +15,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -33,6 +36,7 @@ import com.markfoundry.spindle.ui.theme.MotionTokens
 import com.markfoundry.spindle.ui.theme.SkinColors
 import com.markfoundry.spindle.ui.theme.SpindleFlags
 import kotlin.math.abs
+import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlinx.coroutines.coroutineScope
@@ -148,7 +152,7 @@ private fun rememberSettledVisible(): () -> Boolean {
 /** Unit vector from pivot to disc center, the arm's zero-angle direction. */
 private val ArmAxis = Offset(0.5f - ArmGeometry.PIVOT_X, 0.5f - ArmGeometry.PIVOT_Y).let { it / it.getDistance() }
 
-/** Static plinth: pivot base and the arm rest. Drawn on a deck box sized DECK_WIDTH D by D. */
+/** Static plinth: a plate joining the pivot base and the arm rest. Drawn on a deck box sized DECK_WIDTH D by D. */
 @Composable
 fun ArmBase(colors: SkinColors, modifier: Modifier = Modifier) {
     Canvas(modifier) {
@@ -159,12 +163,26 @@ fun ArmBase(colors: SkinColors, modifier: Modifier = Modifier) {
             (ArmAxis.x * cos(rad) - ArmAxis.y * sin(rad)).toFloat(),
             (ArmAxis.x * sin(rad) + ArmAxis.y * cos(rad)).toFloat(),
         )
-        drawCircle(colors.shadow, 0.09f * d, pivot + Offset(0f, 4.dp.toPx()))
-        drawCircle(colors.tray, 0.09f * d, pivot)
-        drawCircle(colors.trayEdge, 0.09f * d, pivot, style = Stroke(1.dp.toPx()))
-        val post = pivot + rest * (0.42f * d)
-        drawCircle(colors.tray, 0.03f * d, post)
-        drawCircle(DeckPalette.ArmMetal, 0.03f * d, post, style = Stroke(1.dp.toPx()))
+        val reach = 0.42f * d
+        val post = pivot + rest * reach
+        // Plate 0.16D wide, radius 12dp, from under the pivot base past the rest post.
+        val half = 0.08f * d
+        val plateDeg = Math.toDegrees(atan2(rest.y, rest.x).toDouble()).toFloat()
+        val plateTopLeft = Offset(pivot.x, pivot.y - half)
+        val plateSize = Size(reach + half, half * 2)
+        val corner = CornerRadius(12.dp.toPx())
+        val drop = 4.dp.toPx()
+        withTransform({ translate(top = drop); rotate(plateDeg, pivot) }) {
+            drawRoundRect(colors.shadow, plateTopLeft, plateSize, corner)
+        }
+        drawCircle(colors.shadow, 0.09f * d, pivot + Offset(0f, drop))
+        withTransform({ rotate(plateDeg, pivot) }) {
+            drawRoundRect(colors.plinth, plateTopLeft, plateSize, corner)
+            drawRoundRect(colors.plinthEdge, plateTopLeft, plateSize, corner, style = Stroke(1.dp.toPx()))
+        }
+        drawCircle(colors.plinth, 0.09f * d, pivot)
+        drawCircle(colors.plinthEdge, 0.09f * d, pivot, style = Stroke(1.dp.toPx()))
+        drawCircle(DeckPalette.ArmMetal, 0.03f * d, post)
     }
 }
 
