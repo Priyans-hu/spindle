@@ -4,7 +4,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -24,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
@@ -110,43 +110,45 @@ private fun FluxDisc(size: Dp, artwork: ImageBitmap?, isPlaying: Boolean) {
         label = "flux-breath",
     )
     Box(Modifier.size(size), contentAlignment = Alignment.Center) {
-        Canvas(Modifier.fillMaxSize()) {
-            val glow = 24.dp.toPx()
-            val r = size.toPx() / 2f - glow
-            drawCircle(
-                brush = Brush.radialGradient(
-                    0f to Color.Transparent,
-                    (r - glow) / (r + glow) to Color.Transparent,
-                    r / (r + glow) to Flux.accent.copy(alpha = 0.35f),
-                    1f to Color.Transparent,
-                    center = center,
-                    radius = r + glow,
-                ),
-                radius = r + glow,
-            )
-        }
+        // Ring and glow turn together: the glow takes each foil arc's colour, none between arcs.
         Canvas(
-            Modifier.fillMaxSize().padding(24.dp).graphicsLayer {
+            Modifier.fillMaxSize().graphicsLayer {
                 rotationZ = spin.angle
                 compositingStrategy = CompositingStrategy.Offscreen
             },
         ) {
-            val stroke = this.size.minDimension * 0.075f
-            val r = this.size.minDimension / 2f - stroke / 2f
+            val glow = GLOW.toPx()
+            val outer = this.size.minDimension / 2f - glow
+            val stroke = outer * 2f * RING
+            val r = outer - stroke / 2f
+            drawCircle(FoilGlow, outer, style = Stroke(glow * 2f))
+            // Radial falloff over 24dp each side of the ring's outer edge; DstIn masks only the glow drawn so far.
+            drawCircle(
+                brush = Brush.radialGradient(
+                    0f to Color.Transparent,
+                    (outer - glow) / (outer + glow) to Color.Transparent,
+                    outer / (outer + glow) to Color.Black,
+                    1f to Color.Transparent,
+                    center = center,
+                    radius = outer + glow,
+                ),
+                radius = outer + glow,
+                blendMode = BlendMode.DstIn,
+            )
             drawCircle(FoilRing, r, style = Stroke(stroke))
             drawCircle(Flux.trayEdge, r + stroke / 2f, style = Stroke(1.dp.toPx()))
             drawCircle(Flux.trayEdge, r - stroke / 2f, style = Stroke(1.dp.toPx()))
         }
+        // Art fills the ring to a 4dp gap; no border, so light shows only on the foil.
         Box(
             modifier = Modifier
-                .size((size - 48.dp) * 0.78f)
+                .size((size - GLOW * 2) * (1f - RING * 2) - ART_GAP * 2)
                 .graphicsLayer {
                     scaleX = breath
                     scaleY = breath
                 }
                 .clip(CircleShape)
-                .background(FluxPalette.GroundTop)
-                .border(1.dp, Flux.trayEdge, CircleShape),
+                .background(FluxPalette.GroundTop),
         ) {
             if (artwork != null) {
                 Image(artwork, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
@@ -155,7 +157,32 @@ private fun FluxDisc(size: Dp, artwork: ImageBitmap?, isPlaying: Boolean) {
     }
 }
 
+private val GLOW = 24.dp
+private val ART_GAP = 4.dp
+
+/** Ring stroke as a fraction of the ring's outer diameter. */
+private const val RING = 0.075f
+
 private val FoilBase = FluxPalette.SeekTrack.copy(alpha = 0.30f)
+
+private fun glowOf(c: Color) = c.copy(alpha = 0.15f)
+
+private val GlowClear = FluxPalette.Accent.copy(alpha = 0f)
+
+/** The foil arcs at 15%, clear between them. Same stops as [FoilRing]. */
+private val FoilGlow = Brush.sweepGradient(
+    0f to GlowClear,
+    0.05f to GlowClear,
+    0.10f to glowOf(FluxPalette.Accent),
+    0.15f to glowOf(FluxPalette.Violet),
+    0.20f to glowOf(FluxPalette.Magenta),
+    0.27f to GlowClear,
+    0.55f to GlowClear,
+    0.60f to glowOf(FluxPalette.Accent),
+    0.64f to glowOf(FluxPalette.Violet),
+    0.68f to GlowClear,
+    1f to GlowClear,
+)
 
 private val FoilRing = Brush.sweepGradient(
     0f to FoilBase,
