@@ -11,6 +11,10 @@ private val LightColors = lightColorScheme()
 private val DarkColors = darkColorScheme()
 private val SpindleTypography = Typography()
 
+/** Analog follows the system: Day = light, Night = dark (spec s1). */
+@Composable
+fun analogColors(): SkinColors = if (isSystemInDarkTheme()) AnalogNight else AnalogDay
+
 @Composable
 fun SpindleTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
