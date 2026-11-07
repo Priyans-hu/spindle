@@ -2,8 +2,6 @@ package com.markfoundry.spindle.skin
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -16,31 +14,23 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -57,6 +47,9 @@ import com.markfoundry.spindle.ui.PauseIcon
 import com.markfoundry.spindle.ui.PlayIcon
 import com.markfoundry.spindle.ui.PrevIcon
 import com.markfoundry.spindle.ui.SeekBar
+import com.markfoundry.spindle.ui.TransportButton
+import com.markfoundry.spindle.ui.WordmarkRow
+import com.markfoundry.spindle.ui.tray
 import com.markfoundry.spindle.ui.motion.Spin
 import com.markfoundry.spindle.ui.motion.rememberMotionEnabled
 import com.markfoundry.spindle.ui.motion.rememberSpin
@@ -73,6 +66,7 @@ object TurntableSkin : PlayerSkin {
     override val id = "turntable"
     override val displayName = "Turntable"
     override val type = AnalogType
+    override val trayRadius = SpindleDimens.AnalogTrayRadius
 
     @Composable
     override fun colors(): SkinColors = analogColors()
@@ -99,16 +93,7 @@ private fun TurntableScreen(state: NowPlaying, controls: PlayerControls) {
         // The deck is wider than the disc so the parked arm stays on screen.
         val discCap = min((maxWidth - SpindleDimens.Gutter * 2) / ArmGeometry.DECK_WIDTH, maxHeight * 0.46f)
         Column(Modifier.fillMaxSize()) {
-            Row(
-                modifier = Modifier
-                    .statusBarsPadding()
-                    .fillMaxWidth()
-                    .height(64.dp)
-                    .padding(horizontal = SpindleDimens.Gutter),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text("Spindle", color = colors.ink, style = AnalogType.wordmark)
-            }
+            WordmarkRow(colors.ink, AnalogType.wordmark)
             BoxWithConstraints(
                 modifier = Modifier.fillMaxWidth().weight(1f).padding(bottom = SpindleDimens.Gutter),
                 contentAlignment = Alignment.Center,
@@ -208,23 +193,10 @@ private fun Sheen(modifier: Modifier) {
 @Composable
 private fun Tray(state: NowPlaying, controls: PlayerControls, colors: SkinColors) {
     val haptics = rememberHaptics()
-    val radius = SpindleDimens.AnalogTrayRadius
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(topStart = radius, topEnd = radius))
-            .background(colors.tray)
-            .drawBehind {
-                // 1dp top edge (Night); its sides fall outside the clip.
-                val r = radius.toPx()
-                drawRoundRect(
-                    color = colors.trayEdge,
-                    topLeft = Offset(0f, 0.5.dp.toPx()),
-                    size = Size(size.width, size.height + r * 2),
-                    cornerRadius = CornerRadius(r),
-                    style = Stroke(1.dp.toPx()),
-                )
-            }
+            .tray(colors, TurntableSkin.trayRadius)
             .navigationBarsPadding()
             .padding(SpindleDimens.TrayPadding),
     ) {
@@ -274,7 +246,7 @@ private fun Tray(state: NowPlaying, controls: PlayerControls, colors: SkinColors
                 label = if (state.isPlaying) "Pause" else "Play",
                 onClick = { if (state.isPlaying) haptics.pause(); controls.playPause() },
                 diameter = SpindleDimens.Play,
-                fill = colors.playFill,
+                fill = SolidColor(colors.playFill),
                 ring = colors.playRim,
                 ringWidth = SpindleDimens.PlayRim,
             ) {
@@ -285,30 +257,6 @@ private fun Tray(state: NowPlaying, controls: PlayerControls, colors: SkinColors
                 NextIcon(colors.text, 26.dp)
             }
         }
-    }
-}
-
-@Composable
-private fun TransportButton(
-    label: String,
-    onClick: () -> Unit,
-    diameter: Dp,
-    fill: Color = Color.Transparent,
-    ring: Color,
-    ringWidth: Dp = 1.5.dp,
-    content: @Composable () -> Unit,
-) {
-    Box(
-        modifier = Modifier
-            .size(diameter)
-            .clip(CircleShape)
-            .background(fill)
-            .border(ringWidth, ring, CircleShape)
-            .clickable(role = Role.Button, onClick = onClick)
-            .semantics { contentDescription = label },
-        contentAlignment = Alignment.Center,
-    ) {
-        content()
     }
 }
 

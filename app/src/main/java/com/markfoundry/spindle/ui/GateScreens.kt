@@ -9,14 +9,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -41,7 +39,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import com.markfoundry.spindle.R
-import com.markfoundry.spindle.skin.FluxSkin
 import com.markfoundry.spindle.skin.PlayerSkin
 import com.markfoundry.spindle.ui.motion.motionSpec
 import com.markfoundry.spindle.ui.motion.rememberMotionEnabled
@@ -81,21 +78,21 @@ fun OnboardingScreen(skin: PlayerSkin, onGrantClick: () -> Unit, onHelpClick: ()
             modifier = Modifier
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
-                .heightIn(min = maxHeight)
-                .padding(horizontal = SpindleDimens.Gutter),
+                .heightIn(min = maxHeight),
             verticalArrangement = Arrangement.SpaceBetween,
         ) {
-            Wordmark(skin)
+            WordmarkRow(colors.ink, skin.type.wordmark)
             skin.IdleHero(
                 Modifier
                     .fillMaxWidth()
+                    .padding(horizontal = SpindleDimens.Gutter)
                     .height(heroHeight)
                     .graphicsLayer {
                         scaleX = discScale
                         scaleY = discScale
                     },
             )
-            Column(Modifier.padding(top = SpindleDimens.Gutter, bottom = 16.dp)) {
+            Column(Modifier.padding(start = SpindleDimens.Gutter, end = SpindleDimens.Gutter, top = SpindleDimens.Gutter, bottom = 16.dp)) {
                 Text(stringResource(R.string.onboarding_headline), color = colors.ink, style = type.display, modifier = appear(0))
                 Text(
                     stringResource(R.string.onboarding_body),
@@ -150,9 +147,8 @@ fun OnboardingScreen(skin: PlayerSkin, onGrantClick: () -> Unit, onHelpClick: ()
 @Composable
 fun NothingPlayingScreen(skin: PlayerSkin) {
     val colors = skin.colors()
-    val radius = if (skin.id == FluxSkin.id) SpindleDimens.FluxTrayRadius else SpindleDimens.AnalogTrayRadius
     Column(Modifier.fillMaxSize().background(colors.ground)) {
-        Box(Modifier.statusBarsPadding().padding(horizontal = SpindleDimens.Gutter)) { Wordmark(skin) }
+        WordmarkRow(colors.ink, skin.type.wordmark)
         skin.IdleHero(
             Modifier
                 .fillMaxWidth()
@@ -167,19 +163,10 @@ fun NothingPlayingScreen(skin: PlayerSkin) {
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(topStart = radius, topEnd = radius))
-                .background(colors.tray)
+                .tray(colors, skin.trayRadius)
                 .navigationBarsPadding()
                 .padding(SpindleDimens.TrayPadding)
                 .padding(bottom = SpindleDimens.Gutter),
         )
-    }
-}
-
-/** 64dp wordmark row; its center lines up with the 48dp Looks button. */
-@Composable
-private fun Wordmark(skin: PlayerSkin) {
-    Box(Modifier.height(64.dp), contentAlignment = Alignment.CenterStart) {
-        Text("Spindle", color = skin.colors().ink, style = skin.type.wordmark)
     }
 }

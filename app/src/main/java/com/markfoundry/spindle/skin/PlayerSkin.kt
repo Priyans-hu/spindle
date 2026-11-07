@@ -2,6 +2,7 @@ package com.markfoundry.spindle.skin
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import com.markfoundry.spindle.player.NowPlaying
 import com.markfoundry.spindle.player.PlayerControls
 import com.markfoundry.spindle.ui.theme.SkinColors
@@ -16,6 +17,7 @@ interface PlayerSkin {
     val id: String
     val displayName: String
     val type: SpindleType
+    val trayRadius: Dp
 
     @Composable
     fun colors(): SkinColors

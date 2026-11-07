@@ -46,7 +46,7 @@ fun rememberSpin(playing: Boolean, degPerSec: Float, motion: Boolean): Spin {
                 )
             }
             var last = withFrameNanos { it }
-            while (playing || velocity.isRunning || velocity.value > 0f) {
+            while (playing || velocity.value > 0f) {
                 withFrameNanos { now ->
                     val dt = (now - last) / 1_000_000_000f
                     last = now
