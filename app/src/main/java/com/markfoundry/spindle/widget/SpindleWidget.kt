@@ -22,6 +22,7 @@ import com.markfoundry.spindle.MainActivity
 import com.markfoundry.spindle.R
 import com.markfoundry.spindle.data.SettingsStore
 import com.markfoundry.spindle.media.SpindleNotificationListener
+import com.markfoundry.spindle.media.artBitmap
 import com.markfoundry.spindle.skin.FluxSkin
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -70,11 +71,7 @@ object SpindleWidget {
         // No session means the controls would do nothing, so they step aside for the message.
         val transport = if (md == null) View.GONE else View.VISIBLE
         listOf(R.id.widget_prev, R.id.widget_playpause, R.id.widget_next).forEach { views.setViewVisibility(it, transport) }
-        val art = md?.let {
-            it.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART)
-                ?: it.getBitmap(MediaMetadata.METADATA_KEY_ART)
-                ?: it.getBitmap(MediaMetadata.METADATA_KEY_DISPLAY_ICON)
-        }?.let(::labelBitmap)
+        val art = md?.artBitmap()?.let(::labelBitmap)
         if (art != null) {
             views.setImageViewBitmap(R.id.widget_art, art)
         } else {

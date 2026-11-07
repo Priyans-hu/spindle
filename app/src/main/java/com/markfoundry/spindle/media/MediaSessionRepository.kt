@@ -2,6 +2,7 @@ package com.markfoundry.spindle.media
 
 import android.content.ComponentName
 import android.content.Context
+import android.graphics.Bitmap
 import android.media.MediaMetadata
 import android.media.session.MediaController
 import android.media.session.MediaSessionManager
@@ -16,6 +17,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlin.math.abs
+
+/** The best artwork a session publishes: album art, then generic art, then its display icon. */
+fun MediaMetadata.artBitmap(): Bitmap? = getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART)
+    ?: getBitmap(MediaMetadata.METADATA_KEY_ART)
+    ?: getBitmap(MediaMetadata.METADATA_KEY_DISPLAY_ICON)
 
 /**
  * Reads and controls the device's active media session (Spotify, YouTube Music, ...)
@@ -109,11 +115,7 @@ class MediaSessionRepository(context: Context) : PlayerControls {
         val duration = md.getLong(MediaMetadata.METADATA_KEY_DURATION).coerceAtLeast(0L)
         if (artDirty) {
             artDirty = false
-            artwork = (
-                md.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART)
-                    ?: md.getBitmap(MediaMetadata.METADATA_KEY_ART)
-                    ?: md.getBitmap(MediaMetadata.METADATA_KEY_DISPLAY_ICON)
-                )?.asImageBitmap()
+            artwork = md.artBitmap()?.asImageBitmap()
         }
         _state.value = NowPlaying(
             title = md.getString(MediaMetadata.METADATA_KEY_TITLE)?.takeIf { it.isNotBlank() } ?: "Unknown",
