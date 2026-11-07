@@ -2,10 +2,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application>
-        <!-- Debug-only demo source, driven by adb broadcast. Not in release builds. -->
+        <!-- Debug-only demo source, driven by adb broadcast. Not in release builds.
+             DUMP is held by the adb shell, not by other apps. -->
         <receiver
             android:name=".demo.DemoReceiver"
-            android:exported="true" />
+            android:exported="true"
+            android:permission="android.permission.DUMP" />
     </application>
 
 </manifest>

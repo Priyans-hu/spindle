@@ -37,6 +37,7 @@ object DemoSession {
         Track("Night Radio", "Station Nine", "Live", 0L, intArrayOf(0xFF0F3B2E.toInt(), 0xFFE9C46A.toInt(), 0xFFF4F1DE.toInt())),
     )
 
+    private val arts = HashMap<Int, Bitmap>()
     private val main = Handler(Looper.getMainLooper())
     private var session: MediaSession? = null
     private var index = 0
@@ -110,7 +111,7 @@ object DemoSession {
                     .putString(MediaMetadata.METADATA_KEY_ARTIST, t.artist)
                     .putString(MediaMetadata.METADATA_KEY_ALBUM, t.album)
                     .putLong(MediaMetadata.METADATA_KEY_DURATION, t.durationMs)
-                    .putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, art(t.colors, index))
+                    .putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, arts.getOrPut(index) { art(t.colors, index) })
                     .build(),
             )
         }

@@ -10,7 +10,7 @@ import androidx.compose.ui.unit.dp
 object AnalogDayPalette {
     val Ground = Color(0xFFE8645A)
     val Tray = Color(0xFF2B356A)
-    val TrayEdge = Color(0x00000000)
+    val TrayEdge = Color.Transparent
     val Text = Color(0xFFF2E7D0)       // 9.40 on Tray
     val Text2 = Color(0xFFE3D3B2)      // 7.82 on Tray
     val Ink = Color(0xFF151A3A)        // 5.16 on Ground
@@ -23,7 +23,7 @@ object AnalogDayPalette {
     val CtaFill = Color(0xFF2B356A)
     val CtaLabel = Color(0xFFF2E7D0)   // 9.40 on CtaFill
     val Shadow = Color(0x4D151A3A)     // print shadow, 30%
-    val DiscRim = Color(0x00000000)
+    val DiscRim = Color.Transparent
 }
 
 object AnalogNightPalette {
@@ -36,12 +36,12 @@ object AnalogNightPalette {
     val Accent = Color(0xFFFF7A6E)     // 6.14 on Tray
     val PlayFill = Color(0xFFFF7A6E)   // 6.14 on Tray
     val PlayIcon = Color(0xFF141836)   // 6.81 on PlayFill
-    val PlayRim = Color(0x00000000)
+    val PlayRim = Color.Transparent
     val SeekTrack = Color(0xFF8E8A9E)  // 4.67 on Tray
     val SeekThumb = Color(0xFFF2E7D0)  // 12.72 on Tray
     val CtaFill = Color(0xFFFF7A6E)
     val CtaLabel = Color(0xFF141836)   // 6.81 on CtaFill
-    val Shadow = Color(0x00000000)
+    val Shadow = Color.Transparent
     val DiscRim = Color(0x1FF2E7D0)    // cream 12%
 }
 
