@@ -136,6 +136,7 @@ private fun SpindleApp(viewModel: MainViewModel) {
 
             if (granted) {
                 LooksButton(
+                    skin = skin,
                     tint = colors.ink,
                     onClick = { pickerOpen = true },
                     modifier = Modifier.align(Alignment.TopEnd).statusBarsPadding().padding(top = 8.dp, end = 12.dp),

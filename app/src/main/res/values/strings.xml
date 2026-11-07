@@ -9,6 +9,7 @@
     <string name="onboarding_help_hint">Menu, then Allow restricted settings</string>
     <string name="idle_message">Play something in any app.</string>
     <string name="looks_button">Change look</string>
+    <string name="looks_label">Looks</string>
     <string name="looks_title">Choose a look</string>
     <string name="widget_idle_title">Nothing playing</string>
     <string name="widget_unknown_title">Unknown</string>
