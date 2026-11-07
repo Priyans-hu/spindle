@@ -108,7 +108,11 @@ fun SeekBar(
             drawCircle(thumb, d.toPx() / 2f, Offset(x, y))
         }
         // Pull the times up under the track; the 48dp touch row keeps its full height.
-        Row(Modifier.fillMaxWidth().offset(y = (-8).dp), horizontalArrangement = Arrangement.SpaceBetween) {
+        // TalkBack already hears both times in the Seek node's state.
+        Row(
+            modifier = Modifier.fillMaxWidth().offset(y = (-8).dp).clearAndSetSemantics {},
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
             Text(formatTime(shownMs), color = timeColor, style = timeStyle)
             Text(formatTime(durationMs), color = timeColor, style = timeStyle)
         }
