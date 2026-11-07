@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
@@ -46,6 +47,7 @@ import com.markfoundry.spindle.ui.LooksButton
 import com.markfoundry.spindle.ui.NothingPlayingScreen
 import com.markfoundry.spindle.ui.OnboardingScreen
 import com.markfoundry.spindle.ui.SkinPicker
+import com.markfoundry.spindle.ui.motion.LocalArrivedFromIdle
 import com.markfoundry.spindle.ui.motion.rememberMotionEnabled
 import com.markfoundry.spindle.ui.theme.MotionTokens
 import com.markfoundry.spindle.ui.theme.SpindleFlags
@@ -117,6 +119,12 @@ private fun SpindleApp(viewModel: MainViewModel) {
             nowPlaying == null -> IDLE + skin.id
             else -> PLAYER + skin.id
         }
+        // Read the old screen before recording the new one: idle to player means a session arrived.
+        val previousScreen = remember { arrayOfNulls<String>(1) }
+        val arrivedFromIdle = remember(screen) {
+            previousScreen[0]?.startsWith(IDLE) == true && screen.startsWith(PLAYER)
+        }
+        previousScreen[0] = screen
         Box(Modifier.fillMaxSize().background(colors.ground)) {
             AnimatedContent(
                 targetState = screen,
@@ -141,7 +149,9 @@ private fun SpindleApp(viewModel: MainViewModel) {
                     )
                     target.startsWith(IDLE) -> NothingPlayingScreen(skinById(target.removePrefix(IDLE)))
                     else -> (nowPlaying ?: lastPlaying[0])?.let {
-                        skinById(target.removePrefix(PLAYER)).Render(state = it, controls = viewModel.controls)
+                        CompositionLocalProvider(LocalArrivedFromIdle provides arrivedFromIdle) {
+                            skinById(target.removePrefix(PLAYER)).Render(state = it, controls = viewModel.controls)
+                        }
                     }
                 }
             }

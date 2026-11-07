@@ -27,6 +27,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.markfoundry.spindle.ui.Haptics
+import com.markfoundry.spindle.ui.motion.LocalArrivedFromIdle
 import com.markfoundry.spindle.ui.motion.motionSpec
 import com.markfoundry.spindle.ui.theme.DeckPalette
 import com.markfoundry.spindle.ui.theme.MotionTokens
@@ -68,22 +69,35 @@ class Tonearm internal constructor(angle: Float) {
     val angle = Animatable(angle)
     val lift = Animatable(0f)
     internal var lastPlaying: Boolean? = null
+    internal var dropOnArrival = false
 }
 
 /**
  * Needle drop (spec s4). Runs only on a paused-to-playing change seen while the player has been
- * visible for a moment; first composition (cold start, skin switch) and resume snap.
+ * visible for a moment (including a session arriving on Nothing playing); first composition
+ * (cold start, skin switch) and resume snap.
  */
 @Composable
 fun rememberTonearm(isPlaying: Boolean, progress: Float, motion: Boolean, haptics: Haptics): Tonearm {
     val groove by rememberUpdatedState(ArmGeometry.grooveAngle(progress))
-    val arm = remember { Tonearm(if (isPlaying) groove else ArmGeometry.REST) }
+    val arrived = LocalArrivedFromIdle.current
+    // Arriving from Nothing playing starts parked, so a playing session reads as a paused-to-playing drop.
+    val arm = remember {
+        Tonearm(if (isPlaying && !arrived) groove else ArmGeometry.REST).apply {
+            if (arrived) {
+                lastPlaying = false
+                dropOnArrival = true
+            }
+        }
+    }
     val settled = rememberSettledVisible()
 
     LaunchedEffect(isPlaying, motion) {
         val transition = arm.lastPlaying != null && arm.lastPlaying != isPlaying
         arm.lastPlaying = isPlaying
-        val user = transition && settled()
+        // The player was just composed, so settled() is false; an arrival still counts as seen.
+        val user = transition && (settled() || arm.dropOnArrival)
+        arm.dropOnArrival = false
         val animate = user && motion
         if (isPlaying) {
             if (animate) {
