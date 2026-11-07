@@ -57,19 +57,28 @@ object SpindleWidget {
         val md = controller?.metadata
         val playing = controller?.playbackState?.state == PlaybackState.STATE_PLAYING
 
-        var artPx = 0
-        if (md != null) {
+        // The launcher reapplies onto the existing views when the layout is unchanged,
+        // so every field is set on every update or stale text and art survive.
+        if (md == null) {
+            views.setTextViewText(R.id.widget_title, context.getString(R.string.widget_idle_title))
+            views.setTextViewText(R.id.widget_artist, context.getString(R.string.idle_message))
+        } else {
             val title = md.getString(MediaMetadata.METADATA_KEY_TITLE)?.takeIf { it.isNotBlank() }
             views.setTextViewText(R.id.widget_title, title ?: context.getString(R.string.widget_unknown_title))
             views.setTextViewText(R.id.widget_artist, md.getString(MediaMetadata.METADATA_KEY_ARTIST) ?: "")
-            val art = md.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART)
-                ?: md.getBitmap(MediaMetadata.METADATA_KEY_ART)
-                ?: md.getBitmap(MediaMetadata.METADATA_KEY_DISPLAY_ICON)
-            if (art != null) {
-                val label = labelBitmap(art)
-                artPx = label.width
-                views.setImageViewBitmap(R.id.widget_art, label)
-            }
+        }
+        // No session means the controls would do nothing, so they step aside for the message.
+        val transport = if (md == null) View.GONE else View.VISIBLE
+        listOf(R.id.widget_prev, R.id.widget_playpause, R.id.widget_next).forEach { views.setViewVisibility(it, transport) }
+        val art = md?.let {
+            it.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART)
+                ?: it.getBitmap(MediaMetadata.METADATA_KEY_ART)
+                ?: it.getBitmap(MediaMetadata.METADATA_KEY_DISPLAY_ICON)
+        }?.let(::labelBitmap)
+        if (art != null) {
+            views.setImageViewBitmap(R.id.widget_art, art)
+        } else {
+            views.setImageViewResource(R.id.widget_art, if (flux) R.drawable.widget_flux_slot else R.drawable.widget_analog_label)
         }
 
         // The ring spins only while playing; paused shows the same drawable, static.
@@ -85,7 +94,7 @@ object SpindleWidget {
         views.setOnClickPendingIntent(R.id.widget_prev, controlIntent(context, ACTION_PREV))
         views.setOnClickPendingIntent(R.id.widget_playpause, controlIntent(context, ACTION_PLAY_PAUSE))
         views.setOnClickPendingIntent(R.id.widget_next, controlIntent(context, ACTION_NEXT))
-        Log.i(TAG, "SpindleWidget.buildViews: skin=${if (flux) "flux" else "analog"} artPx=$artPx playing=$playing")
+        Log.i(TAG, "SpindleWidget.buildViews: skin=${if (flux) "flux" else "analog"} artPx=${art?.width ?: 0} playing=$playing")
         return views
     }
 
