@@ -30,6 +30,8 @@ import androidx.compose.ui.semantics.setProgress
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
+import com.markfoundry.spindle.ui.motion.motionSpec
+import com.markfoundry.spindle.ui.motion.rememberMotionEnabled
 import com.markfoundry.spindle.ui.theme.MotionTokens
 import com.markfoundry.spindle.ui.theme.SpindleDimens
 
@@ -58,7 +60,7 @@ fun SeekBar(
     val shownMs = dragFraction?.let { (it * durationMs).toLong() } ?: positionMs
     val thumbSize by animateDpAsState(
         targetValue = if (dragFraction != null) SpindleDimens.ThumbPressed else SpindleDimens.Thumb,
-        animationSpec = MotionTokens.press(),
+        animationSpec = motionSpec(rememberMotionEnabled(), MotionTokens.press()),
         label = "seek-thumb",
     )
 
