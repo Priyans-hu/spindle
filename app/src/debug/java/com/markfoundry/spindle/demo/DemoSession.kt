@@ -71,6 +71,9 @@ object DemoSession {
         Log.i(TAG, "DemoSession: seekable=$on")
     }
 
+    /** Skips as if the source app did it, without going through Spindle's controls. */
+    fun next() = main.post { if (session != null) skip(1) }
+
     private val callback = object : MediaSession.Callback() {
         override fun onPlay() = setPlaying(true)
         override fun onPause() = setPlaying(false)
