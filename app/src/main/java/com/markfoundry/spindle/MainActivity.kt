@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
@@ -41,13 +40,10 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.markfoundry.spindle.media.NotificationAccess
-import com.markfoundry.spindle.player.NowPlaying
 import com.markfoundry.spindle.skin.skinById
 import com.markfoundry.spindle.ui.LooksButton
-import com.markfoundry.spindle.ui.NothingPlayingScreen
 import com.markfoundry.spindle.ui.OnboardingScreen
 import com.markfoundry.spindle.ui.SkinPicker
-import com.markfoundry.spindle.ui.motion.LocalArrivedFromIdle
 import com.markfoundry.spindle.ui.motion.rememberMotionEnabled
 import com.markfoundry.spindle.ui.theme.MotionTokens
 import com.markfoundry.spindle.ui.theme.SpindleFlags
@@ -75,7 +71,6 @@ class MainActivity : ComponentActivity() {
 }
 
 private const val ONBOARDING = "onboarding"
-private const val IDLE = "idle:"
 private const val PLAYER = "player:"
 
 @Composable
@@ -101,9 +96,6 @@ private fun SpindleApp(viewModel: MainViewModel) {
         val colors = skin.colors()
         val motion = rememberMotionEnabled()
         var pickerOpen by remember { mutableStateOf(false) }
-        // A player fading out after the session ends still needs its last state.
-        val lastPlaying = remember { arrayOfNulls<NowPlaying>(1) }
-        nowPlaying?.let { lastPlaying[0] = it }
 
         val view = LocalView.current
         SideEffect {
@@ -114,17 +106,8 @@ private fun SpindleApp(viewModel: MainViewModel) {
             }
         }
 
-        val screen = when {
-            !granted -> ONBOARDING
-            nowPlaying == null -> IDLE + skin.id
-            else -> PLAYER + skin.id
-        }
-        // Read the old screen before recording the new one: idle to player means a session arrived.
-        val previousScreen = remember { arrayOfNulls<String>(1) }
-        val arrivedFromIdle = remember(screen) {
-            previousScreen[0]?.startsWith(IDLE) == true && screen.startsWith(PLAYER)
-        }
-        previousScreen[0] = screen
+        // Nothing playing and playing share one screen, so the disc never moves when a session arrives.
+        val screen = if (granted) PLAYER + skin.id else ONBOARDING
         Box(Modifier.fillMaxSize().background(colors.ground)) {
             AnimatedContent(
                 targetState = screen,
@@ -147,12 +130,7 @@ private fun SpindleApp(viewModel: MainViewModel) {
                             )
                         },
                     )
-                    target.startsWith(IDLE) -> NothingPlayingScreen(skinById(target.removePrefix(IDLE)))
-                    else -> (nowPlaying ?: lastPlaying[0])?.let {
-                        CompositionLocalProvider(LocalArrivedFromIdle provides arrivedFromIdle) {
-                            skinById(target.removePrefix(PLAYER)).Render(state = it, controls = viewModel.controls)
-                        }
-                    }
+                    else -> skinById(target.removePrefix(PLAYER)).Render(state = nowPlaying, controls = viewModel.controls)
                 }
             }
 

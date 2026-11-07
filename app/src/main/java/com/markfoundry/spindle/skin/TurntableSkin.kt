@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -56,7 +55,7 @@ import com.markfoundry.spindle.ui.PrevIcon
 import com.markfoundry.spindle.ui.SeekBar
 import com.markfoundry.spindle.ui.TransportButton
 import com.markfoundry.spindle.ui.WordmarkRow
-import com.markfoundry.spindle.ui.tray
+import com.markfoundry.spindle.ui.PlayerTray
 import com.markfoundry.spindle.ui.motion.Spin
 import com.markfoundry.spindle.ui.motion.rememberMotionEnabled
 import com.markfoundry.spindle.ui.motion.rememberSpin
@@ -79,7 +78,7 @@ object TurntableSkin : PlayerSkin {
     override fun colors(): SkinColors = analogColors()
 
     @Composable
-    override fun Render(state: NowPlaying, controls: PlayerControls) {
+    override fun Render(state: NowPlaying?, controls: PlayerControls) {
         TurntableScreen(state, controls)
     }
 
@@ -93,7 +92,7 @@ object TurntableSkin : PlayerSkin {
 }
 
 @Composable
-private fun TurntableScreen(state: NowPlaying, controls: PlayerControls) {
+private fun TurntableScreen(state: NowPlaying?, controls: PlayerControls) {
     val colors = analogColors()
     BoxWithConstraints(Modifier.fillMaxSize().background(colors.ground)) {
         // Disc fills what the tray leaves, capped so a 1.3x font shrinks the disc, not the tray.
@@ -106,9 +105,9 @@ private fun TurntableScreen(state: NowPlaying, controls: PlayerControls) {
                 contentAlignment = Alignment.Center,
             ) {
                 val d = min(discCap, min(maxWidth / ArmGeometry.DECK_WIDTH, maxHeight))
-                AnalogDeck(d, colors, state.artwork, state.isPlaying, state.progress)
+                AnalogDeck(d, colors, state?.artwork, state?.isPlaying == true, state?.progress ?: 0f)
             }
-            Tray(state, controls, colors)
+            PlayerTray(state, controls, colors, TurntableSkin.trayRadius, AnalogType) { s, c -> TrayRows(s, c, colors) }
         }
     }
 }
@@ -218,15 +217,9 @@ private fun Sheen(modifier: Modifier) {
 }
 
 @Composable
-private fun Tray(state: NowPlaying, controls: PlayerControls, colors: SkinColors) {
+private fun TrayRows(state: NowPlaying, controls: PlayerControls, colors: SkinColors) {
     val haptics = rememberHaptics()
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .tray(colors, TurntableSkin.trayRadius)
-            .navigationBarsPadding()
-            .padding(SpindleDimens.TrayPadding),
-    ) {
+    Column(Modifier.fillMaxWidth()) {
         Text(
             state.title,
             color = colors.text,

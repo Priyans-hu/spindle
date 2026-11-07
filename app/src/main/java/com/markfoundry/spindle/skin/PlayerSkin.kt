@@ -22,8 +22,9 @@ interface PlayerSkin {
     @Composable
     fun colors(): SkinColors
 
+    /** The player; [state] null is Nothing playing, drawn on the same deck and tray. */
     @Composable
-    fun Render(state: NowPlaying, controls: PlayerControls)
+    fun Render(state: NowPlaying?, controls: PlayerControls)
 
     /** Static hero for the gates: parked, blank label, no frame loop. */
     @Composable

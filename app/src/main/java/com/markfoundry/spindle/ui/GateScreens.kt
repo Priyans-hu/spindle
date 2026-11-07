@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
@@ -35,7 +34,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import com.markfoundry.spindle.R
@@ -140,33 +138,5 @@ fun OnboardingScreen(skin: PlayerSkin, onGrantClick: () -> Unit, onHelpClick: ()
                 }
             }
         }
-    }
-}
-
-/** Nothing playing: idle disc with the arm parked, and the player's tray holding one line. */
-@Composable
-fun NothingPlayingScreen(skin: PlayerSkin) {
-    val colors = skin.colors()
-    Column(Modifier.fillMaxSize().background(colors.ground)) {
-        WordmarkRow(colors.ink, skin.type.wordmark)
-        skin.IdleHero(
-            Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .padding(start = SpindleDimens.Gutter, end = SpindleDimens.Gutter, bottom = SpindleDimens.Gutter),
-        )
-        Text(
-            stringResource(R.string.idle_message),
-            color = colors.text2,
-            style = skin.type.title,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier
-                .fillMaxWidth()
-                .tray(colors, skin.trayRadius)
-                .navigationBarsPadding()
-                .padding(SpindleDimens.TrayPadding)
-                .padding(bottom = SpindleDimens.Gutter),
-        )
     }
 }

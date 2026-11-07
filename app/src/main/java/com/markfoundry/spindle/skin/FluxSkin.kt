@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -45,7 +44,7 @@ import com.markfoundry.spindle.ui.PrevIcon
 import com.markfoundry.spindle.ui.SeekBar
 import com.markfoundry.spindle.ui.TransportButton
 import com.markfoundry.spindle.ui.WordmarkRow
-import com.markfoundry.spindle.ui.tray
+import com.markfoundry.spindle.ui.PlayerTray
 import com.markfoundry.spindle.ui.motion.motionSpec
 import com.markfoundry.spindle.ui.motion.rememberMotionEnabled
 import com.markfoundry.spindle.ui.motion.rememberSpin
@@ -68,7 +67,7 @@ object FluxSkin : PlayerSkin {
     override fun colors(): SkinColors = Flux
 
     @Composable
-    override fun Render(state: NowPlaying, controls: PlayerControls) {
+    override fun Render(state: NowPlaying?, controls: PlayerControls) {
         FluxScreen(state, controls)
     }
 
@@ -83,7 +82,7 @@ object FluxSkin : PlayerSkin {
 private val FluxGround = Brush.verticalGradient(listOf(FluxPalette.GroundTop, FluxPalette.Ground))
 
 @Composable
-private fun FluxScreen(state: NowPlaying, controls: PlayerControls) {
+private fun FluxScreen(state: NowPlaying?, controls: PlayerControls) {
     BoxWithConstraints(Modifier.fillMaxSize().background(FluxGround)) {
         val discCap = min(maxWidth - SpindleDimens.Gutter * 2, maxHeight * 0.46f)
         Column(Modifier.fillMaxSize()) {
@@ -92,9 +91,9 @@ private fun FluxScreen(state: NowPlaying, controls: PlayerControls) {
                 modifier = Modifier.fillMaxWidth().weight(1f).padding(bottom = SpindleDimens.Gutter),
                 contentAlignment = Alignment.Center,
             ) {
-                FluxDisc(min(discCap, min(maxWidth, maxHeight)), state.artwork, state.isPlaying)
+                FluxDisc(min(discCap, min(maxWidth, maxHeight)), state?.artwork, state?.isPlaying == true)
             }
-            GlassTray(state, controls)
+            PlayerTray(state, controls, Flux, FluxSkin.trayRadius, FluxType) { s, c -> GlassTrayRows(s, c) }
         }
     }
 }
@@ -177,15 +176,9 @@ private val FoilButton = Brush.sweepGradient(
 )
 
 @Composable
-private fun GlassTray(state: NowPlaying, controls: PlayerControls) {
+private fun GlassTrayRows(state: NowPlaying, controls: PlayerControls) {
     val haptics = rememberHaptics()
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .tray(Flux, FluxSkin.trayRadius)
-            .navigationBarsPadding()
-            .padding(SpindleDimens.TrayPadding),
-    ) {
+    Column(Modifier.fillMaxWidth()) {
         Text(state.title, color = Flux.text, style = FluxType.title, maxLines = 2, overflow = TextOverflow.Ellipsis)
         if (state.artist.isNotBlank()) {
             Text(

@@ -8,7 +8,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.withFrameNanos
 import com.markfoundry.spindle.ui.theme.MotionTokens
 import kotlinx.coroutines.coroutineScope
@@ -22,22 +21,14 @@ class Spin internal constructor() {
 }
 
 /**
- * True when the player replaces Nothing playing because a session arrived: the first composition
- * then starts from rest so the spin-up and needle drop run (spec s3) instead of snapping.
- */
-val LocalArrivedFromIdle = staticCompositionLocalOf { false }
-
-/**
  * Velocity engine (spec s2/s4): play spins up over SPIN_UP_MS, pause coasts over COAST_MS.
  * The frame loop runs only while moving; reduced motion holds velocity at 0 and runs no loop.
- * The first composition starts at the target speed, so a cold start or skin switch never replays,
- * unless [LocalArrivedFromIdle] says a session just arrived.
+ * The first composition starts at the target speed, so a cold start or skin switch never replays.
  */
 @Composable
 fun rememberSpin(playing: Boolean, degPerSec: Float, motion: Boolean): Spin {
     val spin = remember { Spin() }
-    val arrived = LocalArrivedFromIdle.current
-    val velocity = remember { Animatable(if (playing && motion && !arrived) degPerSec else 0f) }
+    val velocity = remember { Animatable(if (playing && motion) degPerSec else 0f) }
     LaunchedEffect(playing, motion, degPerSec) {
         if (!motion) {
             velocity.snapTo(0f)
