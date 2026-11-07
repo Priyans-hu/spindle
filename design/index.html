@@ -226,16 +226,6 @@
   .flux-btn.flux-play { width: 64px; height: 64px; color: #0a0d1a; border-color: rgba(255,255,255,.35); background: conic-gradient(from 180deg, var(--flux-cyan), var(--flux-violet), var(--flux-magenta), var(--flux-cyan)); box-shadow: 0 0 26px 4px rgba(124,92,255,.55), 0 10px 22px -8px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.3); }
   .flux-btn.flux-play svg { width: 26px; height: 26px; }
 
-  .flux-trim { display: flex; align-items: center; justify-content: space-between; margin-top: 18px; }
-  .flux-bars { display: flex; align-items: flex-end; gap: 3px; height: 16px; }
-  .flux-bars i { width: 3px; border-radius: 2px; background: linear-gradient(180deg, var(--flux-cyan), var(--flux-violet)); animation: flux-eq 1.1s ease-in-out infinite; }
-  .flux-bars i:nth-child(1) { height: 40%; animation-delay: -.9s; }
-  .flux-bars i:nth-child(2) { height: 90%; animation-delay: -.5s; }
-  .flux-bars i:nth-child(3) { height: 60%; animation-delay: -1.1s; }
-  .flux-bars i:nth-child(4) { height: 100%; animation-delay: -.2s; }
-  .flux-bars i:nth-child(5) { height: 50%; animation-delay: -.7s; }
-  .flux-badge { font-family: var(--flux-mono); font-size: 9px; letter-spacing: .14em; text-transform: uppercase; padding: 5px 8px; border-radius: 999px; color: var(--flux-cyan); background: rgba(47,230,255,.08); border: 1px solid rgba(47,230,255,.35); }
-
   /* ---- app icon ---- */
   .appicon.flux-appicon { background: radial-gradient(120% 120% at 30% 15%, #1b2358 0%, transparent 55%), linear-gradient(160deg, var(--flux-bg-2), var(--flux-bg-0)); }
   .flux-rec { width: 66%; height: 66%; border-radius: 50%; position: relative; display: grid; place-items: center; background: conic-gradient(from 0deg, var(--flux-cyan), var(--flux-violet), var(--flux-magenta), var(--flux-cyan)); box-shadow: 0 3px 10px -3px rgba(0,0,0,.5), 0 0 18px 3px rgba(124,92,255,.55); }
@@ -245,8 +235,7 @@
 
   .caption .chip.flux-chip { background: rgba(124,92,255,.14); border-color: rgba(124,92,255,.4); }
 
-  @keyframes flux-eq { 0%, 100% { height: 20%; } 50% { height: 100%; } }
-  @media (prefers-reduced-motion: reduce) { .flux-ring, .flux-orbit, .flux-bars i { animation: none; } }
+  @media (prefers-reduced-motion: reduce) { .flux-ring, .flux-orbit { animation: none; } }
 </style>
 </head>
 <body>
@@ -357,10 +346,6 @@
             <button class="flux-btn" aria-label="Previous"><svg viewBox="0 0 24 24"><path d="M7 6h2v12H7zm3.5 6L19 6v12z"/></svg></button>
             <button class="flux-btn flux-play" aria-label="Pause"><svg viewBox="0 0 24 24"><path d="M8 5h3v14H8zm5 0h3v14h-3z"/></svg></button>
             <button class="flux-btn" aria-label="Next"><svg viewBox="0 0 24 24"><path d="M15 6h2v12h-2zM5 6l8.5 6L5 18z"/></svg></button>
-          </div>
-          <div class="flux-trim">
-            <div class="flux-bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
-            <div class="flux-badge">Lossless</div>
           </div>
         </div>
       </div>
