@@ -1,5 +1,12 @@
 package com.markfoundry.spindle.skin
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -114,15 +121,15 @@ private fun AnalogDeck(d: Dp, colors: SkinColors, artwork: ImageBitmap?, isPlayi
     val arm = rememberTonearm(isPlaying, progress, motion, rememberHaptics())
     Box(Modifier.size(d * ArmGeometry.DECK_WIDTH, d)) {
         ArmBase(colors, Modifier.fillMaxSize())
-        Record(artwork, spin, colors, Modifier.size(d))
+        Record(artwork, spin, colors, motion, Modifier.size(d))
         if (SpindleFlags.SHEEN) Sheen(Modifier.size(d))
         TonearmArm(arm, colors, Modifier.fillMaxSize())
     }
 }
 
 @Composable
-private fun Record(artwork: ImageBitmap?, spin: Spin, colors: SkinColors, modifier: Modifier = Modifier) {
-    Canvas(
+private fun Record(artwork: ImageBitmap?, spin: Spin, colors: SkinColors, motion: Boolean, modifier: Modifier = Modifier) {
+    Box(
         modifier = modifier
             // Print shadow stays put while the record turns.
             .drawBehind {
@@ -134,34 +141,54 @@ private fun Record(artwork: ImageBitmap?, spin: Spin, colors: SkinColors, modifi
                 compositingStrategy = CompositingStrategy.Offscreen
             },
     ) {
-        val c = center
-        val outer = size.minDimension / 2f
-        val labelR = outer * LABEL
-        drawCircle(DeckPalette.Vinyl, outer, c)
-        val groove = Stroke(width = 1.2.dp.toPx())
-        var r = outer * 0.96f
-        while (r > labelR) {
-            drawCircle(DeckPalette.Groove, r, c, style = groove)
-            r -= 3.5.dp.toPx()
-        }
-        drawCircle(colors.text.copy(alpha = 0.6f), outer * 0.9f, c, style = Stroke(1.dp.toPx()))
-        drawCircle(colors.discRim, outer - 0.75.dp.toPx(), c, style = Stroke(1.5.dp.toPx()))
-        if (artwork != null) {
-            val d = (labelR * 2f).toInt()
-            clipPath(Path().apply { addOval(Rect(c, labelR)) }) {
-                drawImage(
-                    image = artwork,
-                    dstOffset = IntOffset((c.x - labelR).toInt(), (c.y - labelR).toInt()),
-                    dstSize = IntSize(d, d),
-                )
+        Canvas(Modifier.fillMaxSize()) {
+            val outer = size.minDimension / 2f
+            drawCircle(DeckPalette.Vinyl, outer)
+            val groove = Stroke(width = 1.2.dp.toPx())
+            var r = outer * 0.96f
+            while (r > outer * LABEL) {
+                drawCircle(DeckPalette.Groove, r, style = groove)
+                r -= 3.5.dp.toPx()
             }
-        } else {
-            // Blank label: a cream white-label pressing.
-            drawCircle(colors.text2, labelR, c)
-            drawCircle(colors.ground, labelR * 0.62f, c, style = Stroke(1.dp.toPx()))
+            drawCircle(colors.text.copy(alpha = 0.6f), outer * 0.9f, style = Stroke(1.dp.toPx()))
+            drawCircle(colors.discRim, outer - 0.75.dp.toPx(), style = Stroke(1.5.dp.toPx()))
         }
-        drawCircle(colors.text, labelR, c, style = Stroke(3.dp.toPx()))
-        drawCircle(colors.ground, outer * 0.035f, c)
+        // Label art crossfades 300 in / 200 out on a track change.
+        AnimatedContent(
+            targetState = artwork,
+            transitionSpec = {
+                if (motion) {
+                    fadeIn(tween(MotionTokens.ART_FADE_IN_MS)) togetherWith fadeOut(tween(MotionTokens.ART_FADE_OUT_MS))
+                } else {
+                    EnterTransition.None togetherWith ExitTransition.None
+                }
+            },
+            label = "label-art",
+        ) { art ->
+            Canvas(Modifier.fillMaxSize()) {
+                val c = center
+                val labelR = size.minDimension / 2f * LABEL
+                if (art != null) {
+                    val d = (labelR * 2f).toInt()
+                    clipPath(Path().apply { addOval(Rect(c, labelR)) }) {
+                        drawImage(
+                            image = art,
+                            dstOffset = IntOffset((c.x - labelR).toInt(), (c.y - labelR).toInt()),
+                            dstSize = IntSize(d, d),
+                        )
+                    }
+                } else {
+                    // Blank label: a cream white-label pressing.
+                    drawCircle(colors.text2, labelR, c)
+                    drawCircle(colors.ground, labelR * 0.62f, c, style = Stroke(1.dp.toPx()))
+                }
+            }
+        }
+        Canvas(Modifier.fillMaxSize()) {
+            val outer = size.minDimension / 2f
+            drawCircle(colors.text, outer * LABEL, style = Stroke(3.dp.toPx()))
+            drawCircle(colors.ground, outer * 0.035f)
+        }
     }
 }
 
