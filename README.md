@@ -33,7 +33,7 @@ remembers it.
   lifts back to its rest. The arm tracks the song's progress.
 - **Flux**: the album art inside a spinning dichroic foil ring over a glass tray. Dark only.
 
-Switch anytime with the **Change look** button (the two-disc icon, top right). More looks are
+Switch anytime with the **Looks** button (top right, with a swatch of the current look). More looks are
 on the roadmap (see [`design/skin-ideas.md`](design/skin-ideas.md), a catalog of 36).
 
 Motion respects **Remove animations** (Settings, Accessibility): the record and ring stay

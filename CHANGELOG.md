@@ -19,8 +19,10 @@ surrounds it.
 ### Changed
 - New design tokens and type (Jost for Analog, Sora for Flux); every text pair meets WCAG AA.
 - Analog follows the system Day/Night setting.
-- Nothing playing shows an idle record with the arm parked; a session arriving runs the drop.
-- The three-dot menu is now a 48dp **Change look** button with a radio-list sheet.
+- Nothing playing shows the same record and tray with the arm parked; a session arriving runs the
+  drop in place, and the disc never moves between idle, playing and live tracks.
+- The three-dot menu is now a 48dp **Looks** button (swatch plus label, "Change look" for
+  TalkBack) with a radio-list sheet.
 - Looks cross-fade on switch; label art cross-fades on track change.
 - Removed decorative labels and effects that did not reflect real playback.
 
